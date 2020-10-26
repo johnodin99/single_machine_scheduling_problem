@@ -57,7 +57,7 @@ class TABU:
                 the_minimum_tardiness = tardiness
             else:
                 break
-            print(exchange_tabu_list_in_list)
+
             count += 1
         # print(count)
         # print(tardiness_list)
@@ -65,9 +65,9 @@ class TABU:
         # print(tardiness_list)
         # print(len(the_minimum_order_list_in_list))
         # print(the_minimum_order_list_in_list)
-        # print(the_minimum_order_list)
+        print(the_minimum_order_list)
         # print("self.tabu_times")
-        print(self.tabu_times)
+        # print(self.tabu_times)
 
     # [9, 11, 19, 3, 5, 16, 15, 8, 6, 13, 10, 4, 0, 1, 14, 2, 17, 12, 7, 18]
     def neighborhood_search_one_cycle(self, job_list=None, order_list=None, exchange_tabu_list_in_list=[],
