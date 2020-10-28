@@ -10,8 +10,8 @@ data_path = r"data.xlsx"
 
 
 
-jobs = TABU(data_path, tabu_size=10, random_seed=3)
-jobs.run()
+# jobs = TABU(data_path, tabu_size=10, random_seed=3)
+# jobs.run()
 
 
 jobs = GENETIC(data_path,
@@ -19,7 +19,7 @@ jobs = GENETIC(data_path,
                crossover_rate=0.8,
                mutation_rate=0.1,
                mutation_selection_rate=0.5,
-               num_iteration=2000)
+               num_iteration=1)
 
 jobs.run()
 #[3, 11, 4, 15, 8, 16, 0, 9, 7, 1, 6, 12, 19, 10, 13, 17, 14, 2, 5, 18]

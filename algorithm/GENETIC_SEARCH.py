@@ -15,11 +15,9 @@ class GENETIC:
         self.due_date_list = []
         self.weights_list = []
         self.num_obj = None
-
-        self.population_list = []
-
         self.minimum_record_order_list = []
         self.tardiness_list = []
+        self.population_list = []
         self.population_size = population_size
         self.crossover_rate = crossover_rate
         self.mutation_rate = mutation_rate
@@ -37,13 +35,18 @@ class GENETIC:
         Tbest = np.inf
 
         for n in range(self.num_iteration):
+            # print("self.population_list")
+            # print(self.population_list)
+
             Tbest_now = np.inf
             '''-------- crossover --------'''
             parent_list = copy.deepcopy(self.population_list)
             offspring_list = copy.deepcopy(self.population_list)
             # generate a random sequence to select the parent chromosome to crossover
-            S = list(np.random.permutation(
-                self.population_size))
+            S = list(np.random.permutation(self.population_size))
+
+            print("generate a random sequence to select the parent chromosome to crossover")
+            print(S)
 
             for m in range(int(self.population_size / 2)):
                 crossover_prob = np.random.rand()
@@ -80,11 +83,11 @@ class GENETIC:
                         offspring_list[m][m_chg[i]] = offspring_list[m][m_chg[i + 1]]
 
                     # move the value of the first mutation position to the last mutation position
-                    offspring_list[m][m_chg[ num_mutation_jobs - 1]] = t_value_last
+                    offspring_list[m][m_chg[num_mutation_jobs - 1]] = t_value_last
 
             '''--------fitness value(calculate tardiness)-------------'''
             # parent and offspring chromosomes combination
-            total_chromosome = copy.deepcopy(parent_list) + copy.deepcopy( offspring_list)
+            total_chromosome = copy.deepcopy(parent_list) + copy.deepcopy(offspring_list)
 
             chrom_fitness, chrom_fit = [], []
             total_fitness = 0
@@ -93,7 +96,8 @@ class GENETIC:
                 tardiness = 0
                 for j in range(self.num_job):
                     ptime = ptime + self.processing_time_list[total_chromosome[i][j]]
-                    tardiness = tardiness + self.weights_list[total_chromosome[i][j]] * max(ptime - self.due_date_list[total_chromosome[i][j]], 0)
+                    tardiness = tardiness + self.weights_list[total_chromosome[i][j]] * max(
+                        ptime - self.due_date_list[total_chromosome[i][j]], 0)
                 chrom_fitness.append(1 / tardiness)
                 chrom_fit.append(tardiness)
                 total_fitness = total_fitness + chrom_fitness[i]
@@ -141,16 +145,13 @@ class GENETIC:
         print("average tardiness:%f" % (Tbest / self.num_job))
         print("number of tardy:%d" % num_tardy)
 
-
-
-
     def initial_data(self, data_path):
         self.initial_job_list = self.read_data(data_path)
         self.population_list = self.get_population_list()
         self.processing_time_list = self.get_processing_time_list(self.initial_job_list)
         self.due_date_list = self.get_due_date_list(self.initial_job_list)
         self.weights_list = self.get_weights_list(self.initial_job_list)
-        self.num_obj = len( self.initial_job_list)
+        self.num_obj = len(self.initial_job_list)
 
     def get_processing_time_list(self, job_list):
         processing_time_list = [job.processing_time for job in job_list]
@@ -187,5 +188,3 @@ class GENETIC:
             job = JOB(jobs=items[0], processing_time=items[1], due_date=items[2], weights=items[3])
             initial_job_list.append(job)
         return initial_job_list
-
-
