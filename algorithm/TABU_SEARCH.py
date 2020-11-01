@@ -1,7 +1,9 @@
 import pandas as pd
 import random
 import numpy as np
+import os
 from algorithm.JOB import JOB
+
 
 class TABU:
     def __init__(self, data_path, tabu_size=10, random_seed=None):
@@ -36,8 +38,6 @@ class TABU:
         tardiness_list.append(the_minimum_tardiness)
         the_minimum_order_list_in_list.append(the_minimum_order_list)
 
-
-
         while True:
             the_minimum_job_list, the_minimum_order_list, exchange_tabu_list, tardiness = \
                 self.neighborhood_search_one_cycle(
@@ -47,7 +47,7 @@ class TABU:
                     the_minimun_order_list_in_list=the_minimum_order_list_in_list)
             the_minimum_order_list_in_list.append(the_minimum_order_list)
             if len(exchange_tabu_list_in_list) == self.tabu_size:
-                del(exchange_tabu_list_in_list[0])
+                del (exchange_tabu_list_in_list[0])
                 exchange_tabu_list_in_list.append(exchange_tabu_list)
             else:
                 exchange_tabu_list_in_list.append(exchange_tabu_list)
@@ -57,22 +57,56 @@ class TABU:
                 the_minimum_tardiness = tardiness
             else:
                 break
-
             count += 1
-        # print(count)
-        # print(tardiness_list)
-        # print("len(tardiness_list)")
-        # print(tardiness_list)
-        # print(len(the_minimum_order_list_in_list))
-        # print(the_minimum_order_list_in_list)
-        print(the_minimum_order_list)
-        # print("self.tabu_times")
-        # print(self.tabu_times)
 
-    # [9, 11, 19, 3, 5, 16, 15, 8, 6, 13, 10, 4, 0, 1, 14, 2, 17, 12, 7, 18]
+        job_sequence_ptime = 0
+        num_tardy = 0
+        for k in range(len(self.initial_job_list)):
+            job_sequence_ptime = job_sequence_ptime + self.processing_time_list[the_minimum_order_list[k]]
+            if job_sequence_ptime > self.due_date_list[the_minimum_order_list[k]]:
+                num_tardy = num_tardy + 1
+
+        print(the_minimum_order_list)
+        print(the_minimum_tardiness)
+        average_tardiness = the_minimum_tardiness / len(self.initial_job_list)
+        print(average_tardiness)
+        print(num_tardy)
+
+        self.save_result(the_minimum_tardiness, average_tardiness, the_minimum_order_list, num_tardy)
+
+    def save_result(self, the_minimum_tardiness, average_tardiness, the_minimum_order_list, num_tardy,
+                    record_path="tbu_record.csv"):
+        if not os.path.isfile(record_path):
+            record_df = pd.DataFrame([])
+        else:
+            record_df = pd.read_csv(record_path, index_col=0)
+
+        temp_dict = {
+
+            "optimal_value": the_minimum_tardiness,
+            "average_tardiness": average_tardiness,
+            "num_tardy": num_tardy,
+            "sequence_best": the_minimum_order_list,
+            "tabu_size": self.tabu_size,
+            "random_seed": self.random_seed
+        }
+        record_df = record_df.append(temp_dict, ignore_index=True)
+        record_df.to_csv(record_path)
+
+    def get_processing_time_list(self, job_list):
+        processing_time_list = [job.processing_time for job in job_list]
+        return processing_time_list
+
+    def get_due_date_list(self, job_list):
+        due_date_list = [job.due_date for job in job_list]
+        return due_date_list
+
+    def get_weights_list(self, job_list):
+        weights_list = [job.weights for job in job_list]
+        return weights_list
+
     def neighborhood_search_one_cycle(self, job_list=None, order_list=None, exchange_tabu_list_in_list=[],
                                       the_minimun_order_list_in_list=[]):
-        # print(exchange_tabu_list_in_list)
         if job_list is None:
             job_list = self.job_list
         if order_list is None:
@@ -115,11 +149,6 @@ class TABU:
         the_minimum_job_list = temp_job_list_in_list[the_minimum_index]
         the_minimum_order_list = temp_order_list_in_list[the_minimum_index]
         the_tabu_list = tabu_exchange_list[the_minimum_index]
-        # print(f"the_minimum_tardiness:{the_minimum_tardiness}")
-        # print(f"the_minimum_order_list{the_minimum_order_list}")
-        # print(f"the_tabu_list:{the_tabu_list}")
-        # print(len(minimun_order_list_in_list))
-        # print(minimun_order_list_in_list)
 
         return the_minimum_job_list, the_minimum_order_list, the_tabu_list, the_minimum_tardiness
 
@@ -132,6 +161,10 @@ class TABU:
         self.order_list = self.get_initial_random_order_list()
         for order in self.order_list:
             self.job_list.append(self.initial_job_list[order])
+
+        self.processing_time_list = self.get_processing_time_list(self.initial_job_list)
+        self.due_date_list = self.get_due_date_list(self.initial_job_list)
+        self.weights_list = self.get_weights_list(self.initial_job_list)
 
     def get_initial_random_order_list(self):
         order_list = [i for i in range(len(self.initial_job_list))]
@@ -158,5 +191,3 @@ class TABU:
             process_time_accumulate += job.processing_time
             total_weight_tardiness += job.weights * (process_time_accumulate - job.due_date)
         return total_weight_tardiness
-
-

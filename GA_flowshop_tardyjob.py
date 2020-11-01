@@ -20,9 +20,9 @@ import copy
 ''' ================= initialization setting ======================'''
 num_job = 20  # number of jobs
 
-p = [10, 10, 13, 4, 9, 4, 8, 15, 7, 1, 9, 3, 15, 9, 11, 6, 5, 14, 18, 3]
-d = [50, 38, 49, 12, 20, 105, 73, 45, 6, 64, 15, 6, 92, 43, 78, 21, 15, 50, 150, 99]
-w = [10, 5, 1, 5, 10, 1, 5, 10, 5, 1, 5, 10, 10, 5, 1, 10, 5, 5, 1, 5]
+processing_time_list = [10, 10, 13, 4, 9, 4, 8, 15, 7, 1, 9, 3, 15, 9, 11, 6, 5, 14, 18, 3]
+due_date_list = [50, 38, 49, 12, 20, 105, 73, 45, 6, 64, 15, 6, 92, 43, 78, 21, 15, 50, 150, 99]
+weights_list = [10, 5, 1, 5, 10, 1, 5, 10, 5, 1, 5, 10, 10, 5, 1, 10, 5, 5, 1, 5]
 # raw_input is used in python 2
 # population_size=int(input('Please input the size of population: ') or 30) # default value is 30
 # crossover_rate=float(input('Please input the size of Crossover Rate: ') or 0.8) # default value is 0.8
@@ -37,7 +37,7 @@ crossover_rate = 0.8
 mutation_rate = 0.1
 mutation_selection_rate = 0.5
 num_mutation_jobs = round(num_job * mutation_selection_rate)
-num_iteration = 5
+num_iteration = 20
 
 start_time = time.time()
 
@@ -49,61 +49,72 @@ population_list = []
 for i in range(population_size):
     random_num = list(np.random.permutation(num_job))  # generate a random permutation of 0 to num_job-1
     population_list.append(random_num)  # add to the population_list
-
+print("population_list")
+print(population_list)
 for n in range(num_iteration):
     Tbest_now = 99999999999
     '''-------- crossover --------'''
     parent_list = copy.deepcopy(population_list)
     offspring_list = copy.deepcopy(population_list)
-    S = list(np.random.permutation(
-        population_size))  # generate a random sequence to select the parent chromosome to crossover
+    S = list(np.random.permutation(population_size))
+    # generate a random sequence to select the parent chromosome to crossover
+
 
     for m in range(int(population_size / 2)):
+
+
         crossover_prob = np.random.rand()
         if crossover_rate >= crossover_prob:
             parent_1 = population_list[S[2 * m]][:]
             parent_2 = population_list[S[2 * m + 1]][:]
+
+
             child_1 = ['na' for i in range(num_job)]
             child_2 = ['na' for i in range(num_job)]
+
             fix_num = round(num_job / 2)
             g_fix = list(np.random.choice(num_job, fix_num, replace=False))
-
+            print("g_fix")
+            print(g_fix)
             for g in range(fix_num):
                 child_1[g_fix[g]] = parent_2[g_fix[g]]
                 child_2[g_fix[g]] = parent_1[g_fix[g]]
+
             c1 = [parent_1[i] for i in range(num_job) if parent_1[i] not in child_1]
             c2 = [parent_2[i] for i in range(num_job) if parent_2[i] not in child_2]
 
             for i in range(num_job - fix_num):
                 child_1[child_1.index('na')] = c1[i]
+
                 child_2[child_2.index('na')] = c2[i]
+
             offspring_list[S[2 * m]] = child_1[:]
             offspring_list[S[2 * m + 1]] = child_2[:]
 
-    '''--------mutatuon--------'''
+    '''--------mutation--------'''
     for m in range(len(offspring_list)):
         mutation_prob = np.random.rand()
         if mutation_rate >= mutation_prob:
-            m_chg = list(
-                np.random.choice(num_job, num_mutation_jobs, replace=False))  # chooses the position to mutation
+            m_chg = list(np.random.choice(num_job, num_mutation_jobs, replace=False))
+                  # chooses the position to mutation
             t_value_last = offspring_list[m][m_chg[0]]  # save the value which is on the first mutation position
             for i in range(num_mutation_jobs - 1):
                 offspring_list[m][m_chg[i]] = offspring_list[m][m_chg[i + 1]]  # displacement
 
-            offspring_list[m][m_chg[
-                num_mutation_jobs - 1]] = t_value_last  # move the value of the first mutation position to the last mutation position
+            offspring_list[m][m_chg[num_mutation_jobs - 1]] = t_value_last
+            # move the value of the first mutation position to the last mutation position
 
     '''--------fitness value(calculate tardiness)-------------'''
-    total_chromosome = copy.deepcopy(parent_list) + copy.deepcopy(
-        offspring_list)  # parent and offspring chromosomes combination
+    total_chromosome_list = copy.deepcopy(parent_list) + copy.deepcopy(offspring_list)
+    # parent and offspring chromosomes combination
     chrom_fitness, chrom_fit = [], []
     total_fitness = 0
     for i in range(population_size * 2):
         ptime = 0
         tardiness = 0
         for j in range(num_job):
-            ptime = ptime + p[total_chromosome[i][j]]
-            tardiness = tardiness + w[total_chromosome[i][j]] * max(ptime - d[total_chromosome[i][j]], 0)
+            ptime = ptime + processing_time_list[total_chromosome_list[i][j]]
+            tardiness = tardiness + weights_list[total_chromosome_list[i][j]] * max(ptime - due_date_list[total_chromosome_list[i][j]], 0)
         chrom_fitness.append(1 / tardiness)
         chrom_fit.append(tardiness)
         total_fitness = total_fitness + chrom_fitness[i]
@@ -123,17 +134,17 @@ for n in range(num_iteration):
 
     for i in range(population_size):
         if selection_rand[i] <= qk[0]:
-            population_list[i] = copy.deepcopy(total_chromosome[0])
+            population_list[i] = copy.deepcopy(total_chromosome_list[0])
         else:
             for j in range(0, population_size * 2 - 1):
                 if selection_rand[i] > qk[j] and selection_rand[i] <= qk[j + 1]:
-                    population_list[i] = copy.deepcopy(total_chromosome[j + 1])
+                    population_list[i] = copy.deepcopy(total_chromosome_list[j + 1])
                     break
     '''----------comparison----------'''
     for i in range(population_size * 2):
         if chrom_fit[i] < Tbest_now:
             Tbest_now = chrom_fit[i]
-            sequence_now = copy.deepcopy(total_chromosome[i])
+            sequence_now = copy.deepcopy(total_chromosome_list[i])
 
     if Tbest_now <= Tbest:
         Tbest = Tbest_now
@@ -142,8 +153,8 @@ for n in range(num_iteration):
     job_sequence_ptime = 0
     num_tardy = 0
     for k in range(num_job):
-        job_sequence_ptime = job_sequence_ptime + p[sequence_best[k]]
-        if job_sequence_ptime > d[sequence_best[k]]:
+        job_sequence_ptime = job_sequence_ptime + processing_time_list[sequence_best[k]]
+        if job_sequence_ptime > due_date_list[sequence_best[k]]:
             num_tardy = num_tardy + 1
 '''----------result----------'''
 print("optimal sequence", sequence_best)
